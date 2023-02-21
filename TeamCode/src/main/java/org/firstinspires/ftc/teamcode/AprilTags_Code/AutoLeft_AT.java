@@ -676,6 +676,3 @@ public class AutoLeft_AT extends LinearOpMode
     }
 
  }
-
-
-//Bye
