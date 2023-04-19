@@ -16,7 +16,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 
 @TeleOp(name="Enginerds_Control", group="Linear Opmode")
-//@Disabled
+@Disabled
 
 public class Enginerds_Control extends LinearOpMode {
 
