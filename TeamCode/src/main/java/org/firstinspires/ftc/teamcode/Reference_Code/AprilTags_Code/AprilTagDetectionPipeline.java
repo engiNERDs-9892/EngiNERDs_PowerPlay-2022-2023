@@ -19,7 +19,7 @@
  * SOFTWARE.
  */
 
-package org.firstinspires.ftc.teamcode.Gyro_Code;
+package org.firstinspires.ftc.teamcode.Reference_Code.AprilTags_Code;
 
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 
@@ -44,6 +44,7 @@ import java.util.ArrayList;
 /////////////////////////////////////////////////////////////////////////
 
 @Disabled
+public
 class AprilTagDetectionPipeline extends OpenCvPipeline
 {
     private long nativeApriltagPtr;

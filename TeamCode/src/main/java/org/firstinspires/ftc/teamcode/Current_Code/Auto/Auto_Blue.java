@@ -27,7 +27,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode.Gyro_Code;
+package org.firstinspires.ftc.teamcode.Current_Code.Auto;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -53,23 +53,17 @@ import java.util.ArrayList;
 
 @Autonomous(name="Auto_Circut_Blue", group="Robot")
 @Disabled
-public class Auto_Circut_Blue extends LinearOpMode {
+public class Auto_Blue extends LinearOpMode {
     OpenCvCamera camera;
-    AprilTagDetectionPipeline aprilTagDetectionPipeline;
+    org.firstinspires.ftc.teamcode.Current_Code.Auto.AprilTagDetectionPipeline aprilTagDetectionPipeline;
 
     /* Declare OpMode members. */
     private DcMotor         motorFL  = null;
     private DcMotor         motorFR  = null;
     private DcMotor         motorBL = null;
     private DcMotor         motorBR = null;
-    private DcMotor         motorRiseyRise = null;
-    private DcMotor         motorSlideySlide= null;
-
-    Servo servoFAL;
-    Servo servoFAR;
 
     int in = 45;
-    int up = 90;
 
     private BNO055IMU       imu         = null;      // Gyro Code
 
@@ -134,11 +128,7 @@ public class Auto_Circut_Blue extends LinearOpMode {
         motorFL  = hardwareMap.get(DcMotor.class, "motorFL");
         motorBR  = hardwareMap.get(DcMotor.class, "motorBR");
         motorBL  = hardwareMap.get(DcMotor.class, "motorBL");
-        motorRiseyRise = hardwareMap.get(DcMotor.class, "motorRiseyRise");
-        motorSlideySlide = hardwareMap.get(DcMotor.class, "motorSlideySlide");
 
-        servoFAL = hardwareMap.servo.get("servoFAL");
-        servoFAR = hardwareMap.servo.get("servoFAR");
 
 
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
@@ -147,8 +137,6 @@ public class Auto_Circut_Blue extends LinearOpMode {
         motorBL.setDirection(DcMotorSimple.Direction.REVERSE);
         motorFR.setDirection(DcMotorSimple.Direction.FORWARD);
         motorBR.setDirection(DcMotorSimple.Direction.FORWARD);
-        motorRiseyRise.setDirection(DcMotorSimple.Direction.REVERSE);
-        motorSlideySlide.setDirection(DcMotorSimple.Direction.FORWARD);
 
 
         // define initialization values for IMU, and then initialize it.
@@ -162,8 +150,7 @@ public class Auto_Circut_Blue extends LinearOpMode {
         motorFR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         motorBL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         motorBR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorRiseyRise.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorSlideySlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
 
         double fx = 578.272;
         double fy = 578.272;
@@ -176,7 +163,7 @@ public class Auto_Circut_Blue extends LinearOpMode {
         // Camera
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam Left"), cameraMonitorViewId);
-        aprilTagDetectionPipeline = new AprilTagDetectionPipeline(tagsize, fx, fy, cx, cy);
+        aprilTagDetectionPipeline = new org.firstinspires.ftc.teamcode.Current_Code.Auto.AprilTagDetectionPipeline(tagsize, fx, fy, cx, cy);
 
         camera.setPipeline(aprilTagDetectionPipeline);
         camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
@@ -198,8 +185,7 @@ public class Auto_Circut_Blue extends LinearOpMode {
         motorFR.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         motorBL.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         motorBR.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        motorRiseyRise.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        motorSlideySlide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
 
         while (!isStarted() && !isStopRequested()) {
 
@@ -272,7 +258,6 @@ public class Auto_Circut_Blue extends LinearOpMode {
 
             }
 
-            Close_Claws();
             telemetry.update();
             sleep(20);
         }
@@ -291,7 +276,6 @@ public class Auto_Circut_Blue extends LinearOpMode {
             tagToTelemetry(tagOfInterest);
             telemetry.addData(">", "Robot Heading = %4.0f", getRawHeading());
             telemetry.update();
-            Close_Claws();
 
         }
 
@@ -300,7 +284,6 @@ public class Auto_Circut_Blue extends LinearOpMode {
         {
             telemetry.addLine("No tag snapshot available, it was never sighted during the init loop :(");
             telemetry.addData(">", "Robot Heading = %4.0f", getRawHeading());
-            Close_Claws();
             telemetry.update();
         }
 
@@ -323,13 +306,11 @@ public class Auto_Circut_Blue extends LinearOpMode {
         // The Left is Sleeve 10 (QR Code 10)
         else if (tagOfInterest.id == Left) {
             Autonomous();
-            Left_Lower(46, .8,15,.8);
         }
 
         // The Middle is Sleeve 20 (QR Code 20)
         else if (tagOfInterest.id == Middle) {
             Autonomous();
-            Left_Lower(16,.8,15,.8);
 
         }
 
@@ -337,7 +318,6 @@ public class Auto_Circut_Blue extends LinearOpMode {
         // The third else or in this case Right is Sleeve 30 (QR Code 30)
         else {
             Autonomous();
-            Right_Lower(16,.8,15,.8);
 
         }
     }
@@ -351,19 +331,6 @@ public class Auto_Circut_Blue extends LinearOpMode {
         telemetry.addLine(String.format("\nDetected tag ID=%d", detection.id));
     }
 
-    // Function to Open the Claws
-    private void Open_Claws() {
-        servoFAL.setPosition(.25);
-        servoFAR.setDirection(Servo.Direction.REVERSE);
-        servoFAR.setPosition(.25);
-    }
-
-    // Function to Close the Claws
-    private void Close_Claws() {
-        servoFAL.setPosition(0);
-        servoFAR.setDirection(Servo.Direction.REVERSE);
-        servoFAR.setPosition(0);
-    }
 
     public void driveStraight(double speed, double distance, double heading) {
 
@@ -569,14 +536,11 @@ public class Auto_Circut_Blue extends LinearOpMode {
         // Cone #1 or Pre-Loaded Cone//
         ///////////////////////////////
 
-        // Moves LEFT to align itself for the Small Junction closest to the SubStation (Where Human player places cones)
-        Right_Raise(17,.8,3,.8);
 
         // Moves FORWARDS to Place the cone on the Small Junction
         Move(directions.FORWARDS,5,.8);
 
         // Drop Cone #1 on the Small Junction
-        Open_Claws();
 
         // Move backwards to get off of the Small Junction
         Move(directions.BACKWARDS,5,.8);
@@ -585,8 +549,6 @@ public class Auto_Circut_Blue extends LinearOpMode {
         // Cone #2 or Stack Cone #1//
         /////////////////////////////
 
-        // Lower Linear Slides while aligning the robot with the stack of cones
-        Right_Lower(30,.8,1,.8);
 
         // Rotate 180 degrees so the robot is facing the cones
         driveStraight(0,0,0);
@@ -596,14 +558,6 @@ public class Auto_Circut_Blue extends LinearOpMode {
         // Drives FORWARDS to pick up a cone from the stack
         Move(directions.FORWARDS,24,.8);
 
-        // Grabs the 1st stacked cone
-        Close_Claws();
-
-        // Raises the Linear Slides so it doesn't knock over the stack
-        Raise(2,.8);
-
-        // Moves BACKWARDS while Raising the Linear Slide to align itself with the High Junction Closest to the Substation (Where Human Player places cones)
-        Backwards_Raise(60,.8,15,.8);
 
         // Rotates 90 / (270) Degrees so the robot is facing the High Junction
         driveStraight(0,0,180.0);
@@ -613,8 +567,7 @@ public class Auto_Circut_Blue extends LinearOpMode {
         // Moves FORWARDS to place the cone on the High Junction
         Move(directions.FORWARDS,5,.8);
 
-        // Drops Cone #2 on the High Junction
-        Open_Claws();
+
 
         // Moves BACKWARDS to get off of the High Junction
         Move(directions.BACKWARDS,5,.8);
@@ -628,15 +581,6 @@ public class Auto_Circut_Blue extends LinearOpMode {
         turnToHeading(TURN_SPEED,180.0);
         holdHeading(TURN_SPEED,180.0,0.1);
 
-        // Move FORWARDS while lowering Linear Slides to pick up a cone from the stack
-        Forwards_Lower(60,.8,15,.8);
-
-        // Grabs a cone from the stack
-        Close_Claws();
-
-        // Raises the Linear Slides so it doesn't knock over the stack
-        Raise(2,.8);
-
         // Move FORWARDS to align itself with the Small Junction closest to the stack of cones
         Move(directions.BACKWARDS,4,.8);
 
@@ -648,11 +592,6 @@ public class Auto_Circut_Blue extends LinearOpMode {
         // Move FORWARDS to place the cone on the Small Junction
         Move(directions.FORWARDS,12,.8);
 
-        // Drops Cone #3 on Small Junction
-        Open_Claws();
-
-        // Moves Backwards to get off of the Small Junction and Align the robot with the cones
-        Backwards_Lower(12,.8,1,.4);
 
         /////////////////////////////
         // Cone #4 or Stack Cone #3//
@@ -666,15 +605,6 @@ public class Auto_Circut_Blue extends LinearOpMode {
         // Move FORWARDS to pick up a cone from the stack
         Move(directions.FORWARDS,2,.8);
 
-        // Grab a cone from the stack
-        Close_Claws();
-
-        // Raise the Linear Slides so we don't knock the stack of cones over
-        Raise(1,0.8);
-
-        // Move BACKWARDS to align the robot with the High Junction that is closest to the Horizontal Middle Line on the Left Side
-        Backwards_Raise(46,.8,15,0.8);
-
         // Rotate 90 / (90) Degrees so the robot is facing the High Junction
         driveStraight(0,0,180.0);
         turnToHeading(turnSpeed,90.0);
@@ -683,425 +613,9 @@ public class Auto_Circut_Blue extends LinearOpMode {
         // Move FORWARDS to place the cone on the High Junction
         Move(directions.FORWARDS,5,.8);
 
-        // Drop Cone #4 on the High Junction
-        Open_Claws();
 
         // Back up to align the robot for parking
         Move(directions.BACKWARDS,5,0);
-    }
-
-
-    private void Left_Raise(int moveTarget, double moveSpeed, int clawTarget, double clawspeed) {
-
-        motorFL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorBL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorFR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorBR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorRiseyRise.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorSlideySlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        motorFL.setDirection(DcMotorSimple.Direction.FORWARD);
-        motorFR.setDirection(DcMotorSimple.Direction.FORWARD);
-        motorBL.setDirection(DcMotorSimple.Direction.REVERSE);
-        motorBR.setDirection(DcMotorSimple.Direction.REVERSE);
-        motorRiseyRise.setDirection(DcMotorSimple.Direction.FORWARD);
-        motorSlideySlide.setDirection(DcMotorSimple.Direction.REVERSE);
-
-        motorFL.setTargetPosition(moveTarget * in);
-        motorFR.setTargetPosition(moveTarget * in);
-        motorBL.setTargetPosition(moveTarget * in);
-        motorBR.setTargetPosition(moveTarget * in);
-        motorRiseyRise.setTargetPosition(clawTarget*up);
-        motorSlideySlide.setTargetPosition(clawTarget*up);
-
-        motorFL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorBL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorFR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorBR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorRiseyRise.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorSlideySlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-        motorFL.setPower(moveSpeed);
-        motorFR.setPower(moveSpeed);
-        motorBL.setPower(moveSpeed);
-        motorBR.setPower(moveSpeed);
-        motorSlideySlide.setPower(clawspeed);
-        motorRiseyRise.setPower(clawspeed);
-        while (opModeIsActive() &&  motorFL.isBusy() || motorSlideySlide.isBusy()){}
-
-
-        motorFL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorBL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorFR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorBR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorRiseyRise.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorSlideySlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-    }
-    private void Right_Raise(int moveTarget, double moveSpeed, int clawTarget, double clawspeed) {
-
-        motorFL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorBL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorFR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorBR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorRiseyRise.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorSlideySlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        motorFL.setDirection(DcMotorSimple.Direction.REVERSE);
-        motorFR.setDirection(DcMotorSimple.Direction.REVERSE);
-        motorBL.setDirection(DcMotorSimple.Direction.FORWARD);
-        motorBR.setDirection(DcMotorSimple.Direction.FORWARD);
-        motorRiseyRise.setDirection(DcMotorSimple.Direction.FORWARD);
-        motorSlideySlide.setDirection(DcMotorSimple.Direction.REVERSE);
-
-        motorFL.setTargetPosition(moveTarget * in);
-        motorFR.setTargetPosition(moveTarget * in);
-        motorBL.setTargetPosition(moveTarget * in);
-        motorBR.setTargetPosition(moveTarget * in);
-        motorRiseyRise.setTargetPosition(clawTarget*up);
-        motorSlideySlide.setTargetPosition(clawTarget*up);
-
-        motorFL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorBL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorFR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorBR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorRiseyRise.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorSlideySlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-        motorFL.setPower(moveSpeed);
-        motorFR.setPower(moveSpeed);
-        motorBL.setPower(moveSpeed);
-        motorBR.setPower(moveSpeed);
-        motorSlideySlide.setPower(clawspeed);
-        motorRiseyRise.setPower(clawspeed);
-        while (opModeIsActive() &&  motorFL.isBusy() || motorSlideySlide.isBusy()){}
-
-
-        motorFL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorBL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorFR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorBR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorRiseyRise.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorSlideySlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-    }
-    private void Forwards_Raise(int moveTarget, double moveSpeed, int clawTarget, double clawspeed) {
-
-        motorFL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorBL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorFR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorBR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorRiseyRise.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorSlideySlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        motorFL.setDirection(DcMotorSimple.Direction.REVERSE);
-        motorFR.setDirection(DcMotorSimple.Direction.FORWARD);
-        motorBL.setDirection(DcMotorSimple.Direction.REVERSE);
-        motorBR.setDirection(DcMotorSimple.Direction.FORWARD);
-        motorRiseyRise.setDirection(DcMotorSimple.Direction.FORWARD);
-        motorSlideySlide.setDirection(DcMotorSimple.Direction.REVERSE);
-
-        motorFL.setTargetPosition(moveTarget * in);
-        motorFR.setTargetPosition(moveTarget * in);
-        motorBL.setTargetPosition(moveTarget * in);
-        motorBR.setTargetPosition(moveTarget * in);
-        motorRiseyRise.setTargetPosition(clawTarget*up);
-        motorSlideySlide.setTargetPosition(clawTarget*up);
-
-        motorFL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorBL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorFR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorBR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorRiseyRise.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorSlideySlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-        motorFL.setPower(moveSpeed);
-        motorFR.setPower(moveSpeed);
-        motorBL.setPower(moveSpeed);
-        motorBR.setPower(moveSpeed);
-        motorSlideySlide.setPower(clawspeed);
-        motorRiseyRise.setPower(clawspeed);
-        while (opModeIsActive() &&  motorFL.isBusy() || motorSlideySlide.isBusy()){}
-
-
-        motorFL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorBL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorFR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorBR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorRiseyRise.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorSlideySlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-    }
-    private void Backwards_Raise(int moveTarget, double moveSpeed, int clawTarget, double clawspeed) {
-
-        motorFL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorBL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorFR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorBR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorRiseyRise.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorSlideySlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        motorFL.setDirection(DcMotorSimple.Direction.FORWARD);
-        motorFR.setDirection(DcMotorSimple.Direction.REVERSE);
-        motorBL.setDirection(DcMotorSimple.Direction.FORWARD);
-        motorBR.setDirection(DcMotorSimple.Direction.REVERSE);
-        motorRiseyRise.setDirection(DcMotorSimple.Direction.FORWARD);
-        motorSlideySlide.setDirection(DcMotorSimple.Direction.REVERSE);
-
-        motorFL.setTargetPosition(moveTarget * in);
-        motorFR.setTargetPosition(moveTarget * in);
-        motorBL.setTargetPosition(moveTarget * in);
-        motorBR.setTargetPosition(moveTarget * in);
-        motorRiseyRise.setTargetPosition(clawTarget*up);
-        motorSlideySlide.setTargetPosition(clawTarget*up);
-
-        motorFL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorBL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorFR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorBR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorRiseyRise.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorSlideySlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-        motorFL.setPower(moveSpeed);
-        motorFR.setPower(moveSpeed);
-        motorBL.setPower(moveSpeed);
-        motorBR.setPower(moveSpeed);
-        motorSlideySlide.setPower(clawspeed);
-        motorRiseyRise.setPower(clawspeed);
-        while (opModeIsActive() &&  motorFL.isBusy() || motorSlideySlide.isBusy()){}
-
-
-        motorFL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorBL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorFR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorBR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorRiseyRise.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorSlideySlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-    }
-    private void Left_Lower(int moveTarget, double moveSpeed, int clawTarget, double clawspeed) {
-
-        motorFL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorBL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorFR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorBR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorRiseyRise.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorSlideySlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        motorFL.setDirection(DcMotorSimple.Direction.FORWARD);
-        motorFR.setDirection(DcMotorSimple.Direction.FORWARD);
-        motorBL.setDirection(DcMotorSimple.Direction.REVERSE);
-        motorBR.setDirection(DcMotorSimple.Direction.REVERSE);
-        motorRiseyRise.setDirection(DcMotorSimple.Direction.REVERSE);
-        motorSlideySlide.setDirection(DcMotorSimple.Direction.FORWARD);
-
-        motorFL.setTargetPosition(moveTarget * in);
-        motorFR.setTargetPosition(moveTarget * in);
-        motorBL.setTargetPosition(moveTarget * in);
-        motorBR.setTargetPosition(moveTarget * in);
-        motorRiseyRise.setTargetPosition(clawTarget*up);
-        motorSlideySlide.setTargetPosition(clawTarget*up);
-
-        motorFL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorBL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorFR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorBR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorRiseyRise.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorSlideySlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-        motorFL.setPower(moveSpeed);
-        motorFR.setPower(moveSpeed);
-        motorBL.setPower(moveSpeed);
-        motorBR.setPower(moveSpeed);
-        motorSlideySlide.setPower(clawspeed);
-        motorRiseyRise.setPower(clawspeed);
-        while (opModeIsActive() &&  motorFL.isBusy() || motorSlideySlide.isBusy()){}
-
-
-        motorFL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorBL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorFR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorBR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorRiseyRise.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorSlideySlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-    }
-    private void Right_Lower(int moveTarget, double moveSpeed, int clawTarget, double clawspeed) {
-
-        motorFL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorBL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorFR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorBR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorRiseyRise.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorSlideySlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        motorFL.setDirection(DcMotorSimple.Direction.REVERSE);
-        motorFR.setDirection(DcMotorSimple.Direction.REVERSE);
-        motorBL.setDirection(DcMotorSimple.Direction.FORWARD);
-        motorBR.setDirection(DcMotorSimple.Direction.FORWARD);
-        motorRiseyRise.setDirection(DcMotorSimple.Direction.REVERSE);
-        motorSlideySlide.setDirection(DcMotorSimple.Direction.FORWARD);
-
-        motorFL.setTargetPosition(moveTarget * in);
-        motorFR.setTargetPosition(moveTarget * in);
-        motorBL.setTargetPosition(moveTarget * in);
-        motorBR.setTargetPosition(moveTarget * in);
-        motorRiseyRise.setTargetPosition(clawTarget*up);
-        motorSlideySlide.setTargetPosition(clawTarget*up);
-
-        motorFL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorBL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorFR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorBR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorRiseyRise.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorSlideySlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-        motorFL.setPower(moveSpeed);
-        motorFR.setPower(moveSpeed);
-        motorBL.setPower(moveSpeed);
-        motorBR.setPower(moveSpeed);
-        motorSlideySlide.setPower(clawspeed);
-        motorRiseyRise.setPower(clawspeed);
-        while (opModeIsActive() &&  motorFL.isBusy() || motorSlideySlide.isBusy()){}
-
-
-        motorFL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorBL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorFR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorBR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorRiseyRise.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorSlideySlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-    }
-    private void Forwards_Lower(int moveTarget, double moveSpeed, int clawTarget, double clawspeed) {
-
-        motorFL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorBL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorFR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorBR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorRiseyRise.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorSlideySlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        motorFL.setDirection(DcMotorSimple.Direction.REVERSE);
-        motorFR.setDirection(DcMotorSimple.Direction.FORWARD);
-        motorBL.setDirection(DcMotorSimple.Direction.REVERSE);
-        motorBR.setDirection(DcMotorSimple.Direction.FORWARD);
-        motorRiseyRise.setDirection(DcMotorSimple.Direction.REVERSE);
-        motorSlideySlide.setDirection(DcMotorSimple.Direction.FORWARD);
-
-        motorFL.setTargetPosition(moveTarget * in);
-        motorFR.setTargetPosition(moveTarget * in);
-        motorBL.setTargetPosition(moveTarget * in);
-        motorBR.setTargetPosition(moveTarget * in);
-        motorRiseyRise.setTargetPosition(clawTarget*up);
-        motorSlideySlide.setTargetPosition(clawTarget*up);
-
-        motorFL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorBL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorFR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorBR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorRiseyRise.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorSlideySlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-        motorFL.setPower(moveSpeed);
-        motorFR.setPower(moveSpeed);
-        motorBL.setPower(moveSpeed);
-        motorBR.setPower(moveSpeed);
-        motorSlideySlide.setPower(clawspeed);
-        motorRiseyRise.setPower(clawspeed);
-        while (opModeIsActive() &&  motorFL.isBusy() || motorSlideySlide.isBusy()){}
-
-
-        motorFL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorBL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorFR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorBR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorRiseyRise.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorSlideySlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-    }
-    private void Backwards_Lower(int moveTarget, double moveSpeed, int clawTarget, double clawspeed) {
-
-        motorFL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorBL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorFR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorBR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorRiseyRise.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorSlideySlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        motorFL.setDirection(DcMotorSimple.Direction.FORWARD);
-        motorFR.setDirection(DcMotorSimple.Direction.REVERSE);
-        motorBL.setDirection(DcMotorSimple.Direction.FORWARD);
-        motorBR.setDirection(DcMotorSimple.Direction.REVERSE);
-        motorRiseyRise.setDirection(DcMotorSimple.Direction.REVERSE);
-        motorSlideySlide.setDirection(DcMotorSimple.Direction.FORWARD);
-
-        motorFL.setTargetPosition(moveTarget * in);
-        motorFR.setTargetPosition(moveTarget * in);
-        motorBL.setTargetPosition(moveTarget * in);
-        motorBR.setTargetPosition(moveTarget * in);
-        motorRiseyRise.setTargetPosition(clawTarget*up);
-        motorSlideySlide.setTargetPosition(clawTarget*up);
-
-        motorFL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorBL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorFR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorBR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorRiseyRise.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorSlideySlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-        motorFL.setPower(moveSpeed);
-        motorFR.setPower(moveSpeed);
-        motorBL.setPower(moveSpeed);
-        motorBR.setPower(moveSpeed);
-        motorSlideySlide.setPower(clawspeed);
-        motorRiseyRise.setPower(clawspeed);
-        while (opModeIsActive() &&  motorFL.isBusy() || motorSlideySlide.isBusy()){}
-
-
-        motorFL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorBL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorFR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorBR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorRiseyRise.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorSlideySlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-    }
-    private void Raise (int clawTarget, double clawspeed){
-        motorRiseyRise.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorSlideySlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        motorRiseyRise.setDirection(DcMotorSimple.Direction.FORWARD);
-        motorSlideySlide.setDirection(DcMotorSimple.Direction.REVERSE);
-
-        motorRiseyRise.setTargetPosition(clawTarget * up);
-        motorSlideySlide.setTargetPosition(clawTarget * up);
-
-        motorRiseyRise.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorSlideySlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-        motorRiseyRise.setPower(clawspeed);
-        motorSlideySlide.setPower(clawspeed);
-
-        while (opModeIsActive() && motorRiseyRise.isBusy() || motorSlideySlide.isBusy()){}
-
-        motorRiseyRise.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorSlideySlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-    }
-    private void Lower (int clawTarget, double clawspeed){
-        motorRiseyRise.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorSlideySlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        motorRiseyRise.setDirection(DcMotorSimple.Direction.REVERSE);
-        motorSlideySlide.setDirection(DcMotorSimple.Direction.FORWARD);
-
-        motorRiseyRise.setTargetPosition(clawTarget * up);
-        motorSlideySlide.setTargetPosition(clawTarget * up);
-
-        motorRiseyRise.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorSlideySlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-        motorRiseyRise.setPower(clawspeed);
-        motorSlideySlide.setPower(clawspeed);
-
-        while (opModeIsActive() && motorRiseyRise.isBusy() || motorSlideySlide.isBusy()){}
-
-        motorRiseyRise.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorSlideySlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
     }
 
     private void Move(directions direction, int target, double speed) {

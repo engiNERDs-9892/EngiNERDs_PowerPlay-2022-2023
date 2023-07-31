@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.OpenCV_Code;
+package org.firstinspires.ftc.teamcode.Reference_Code.AprilTags_Code;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
@@ -8,17 +8,17 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.openftc.apriltag.AprilTagDetection;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
-import org.openftc.easyopencv.OpenCvWebcam;
 
-@Autonomous(name="Auto_Parking",group="used")
+import java.util.ArrayList;
+
+@Autonomous
 @Disabled
-public class Auto_Parking extends LinearOpMode {
-
-//Declare Motors and Devices needed to run the code.
-
+public class AutoLeft_AT extends LinearOpMode
+{
     //Motors
     // The private/public DcMotor _____; are used to identify a motor that can be used throughout the code.
     // Note that it does not matter if you use Public or a Private class identity for the motor
@@ -31,37 +31,58 @@ public class Auto_Parking extends LinearOpMode {
     private DcMotor motorBR;
     private DcMotor motorRiseyRise;
 
-
     //Servos
     // The Servo ____; are used to identify a servo that can be used throughout the code.
     //           Name
     Servo servoFAL;
     Servo servoFAR;
 
-    //Webcam
-    OpenCvWebcam webcam;
-    SkystoneDeterminationExample.SkystoneDeterminationPipeline pipeline;
-    SkystoneDeterminationExample.SkystoneDeterminationPipeline.SkystonePosition snapshotAnalysis = SkystoneDeterminationExample.SkystoneDeterminationPipeline.SkystonePosition.LEFT; // default
 
 
-    //GLOBAL VARIABLES
-    // The int ____ = ______; are used to identify variables used through out the code.
-    //         Name   amount
+    ///////////////////////////////////////////////
+    // April-Tag Things (Camera Included)     /////
+    ///////////////////////////////////////////////
+
+    OpenCvCamera camera;
+    AprilTagDetectionPipeline aprilTagDetectionPipeline;
+
+    static final double FEET_PER_METER = 3.28084;
+
+    // Lens intrinsics
+    // UNITS ARE PIXELS
+    // NOTE: this calibration is for the C920 webcam at 800x448.
+    // You will need to do your own calibration for other configurations!
+    double fx = 578.272;
+    double fy = 578.272;
+    double cx = 402.145;
+    double cy = 221.506;
+
+    // UNITS ARE METERS
+    double tagsize = 0.166;
+
+    //int ID_TAG_OF_INTEREST = 18; // Tag ID 18 from the 36h11 family
+    int Left = 11; //Detects april tag id#5 - Attached to sleeve template position one
+    int Middle = 12; //Detects april tag id#6 - Attached to sleeve template position one
+    int Right = 13; //Detects april tag id#7 - Attached to sleeve template position one
+    AprilTagDetection tagOfInterest = null;
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+    // Global Variables
 
     /* Motor Tick Count
-            Andy Mark 3.7:1 = 103.6
-            Andy Mark 20:1  = 537.6
-            Andy Mark 60:1  = 1680
+               Andy Mark 3.7:1 = 103.6
+               Andy Mark 20:1  = 537.6
+               Andy Mark 60:1  = 1680
 
-        To Calculate: # ticks per revolution / Distance of Revolution =
-     */
-
+           To Calculate: # ticks per revolution / Distance of Revolution =
+        */
     int in = 45; //Used for the wheels to drive: = 537.6 / (pi * 96 mm) = 537.6 / (pi * 3.77953 in)
-    int up = 360; //Used for the linear slide distance
+    int up = 360; //(Old360) Used for the linear slide distance spool 50in dia
 
     @Override
-    public void runOpMode() {
-
+    public void runOpMode()
+    {
         // HardwareMap Section (Used to talk to the driver hub for the configuration)
 
         // Motors
@@ -70,7 +91,6 @@ public class Auto_Parking extends LinearOpMode {
         motorBL = hardwareMap.dcMotor.get("motorBL");
         motorBR = hardwareMap.dcMotor.get("motorBR");
         motorRiseyRise = hardwareMap.dcMotor.get("motorRiseyRise");
-
 
         // Servos
         servoFAL = hardwareMap.servo.get("servoFAL");
@@ -88,98 +108,155 @@ public class Auto_Parking extends LinearOpMode {
 
         // Camera
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
-        pipeline = new SkystoneDeterminationExample.SkystoneDeterminationPipeline();
-        webcam.setPipeline(pipeline);
-        webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
+        camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam Left"), cameraMonitorViewId);
+        aprilTagDetectionPipeline = new AprilTagDetectionPipeline(tagsize, fx, fy, cx, cy);
+
+        camera.setPipeline(aprilTagDetectionPipeline);
+        camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
+        {
             @Override
-            public void onOpened() {
-                // This is in what viewing window the camera is seeing through and it doesn't matter
-                // what orientation it is | UPRIGHT, SIDEWAYS_LEFT, SIDEWAYS_RIGHT, etc.
-                webcam.startStreaming(1280, 720, OpenCvCameraRotation.UPRIGHT);
+            public void onOpened()
+            {
+                camera.startStreaming(800,448, OpenCvCameraRotation.UPRIGHT);
             }
 
             @Override
-            public void onError(int errorCode) {
+            public void onError(int errorCode)
+            {
+
             }
         });
 
+        telemetry.setMsTransmissionInterval(50);
 
-        // Close claws when initialized
-        Close_Claws();
-        //servoFAL.setPosition(0);
-        //servoFAR.setDirection(Servo.Direction.REVERSE);
-        //servoFAR.setPosition(0);
+        /*
+         * The INIT-loop:
+         * This REPLACES waitForStart!
+         */
+        ////////////////////////////////
+        // Start of Code or Initialize//
+        ////////////////////////////////
 
         while (!isStarted() && !isStopRequested()) {
-            telemetry.addData("Realtime analysis", pipeline.getAnalysis());
+
+            // Calls to the Pipline
+            ArrayList<AprilTagDetection> currentDetections = aprilTagDetectionPipeline.getLatestDetections();
+
+            if(currentDetections.size() != 0)
+            {
+                boolean tagFound = false;
+
+                for(AprilTagDetection tag : currentDetections)
+                {
+                    //         QR 10              QR 20               QR 30
+                    if(tag.id == Left || tag.id == Middle || tag.id == Right)
+                    {
+                        tagOfInterest = tag;
+                        tagFound = true;
+                        break;
+                    }
+                }
+
+                // If ANY QR is found Display the Green Text in Telemetry with the QR that is found
+                if(tagFound)
+                {
+                    telemetry.addLine("Tag of interest is in sight!\n\nLocation data:");
+                    tagToTelemetry(tagOfInterest);
+                }
+
+                // If NO QR is found Display one of the following Messages in Green Text
+                else
+                {
+                    // If No Tag is seen then display the text below in the telemetry
+                    telemetry.addLine("Don't see tag of interest :(");
+
+                    if(tagOfInterest == null)
+                    {
+                        // If No Tag is seen then display the text below in the telemetry
+                        telemetry.addLine("(The tag has never been seen)");
+                    }
+                    else
+                    {
+                        // Code to display in the telemetry of the last seen QR Code
+                        telemetry.addLine("\nBut we HAVE seen the tag before; last seen at:");
+                        tagToTelemetry(tagOfInterest);
+                    }
+                }
+            }
+            else
+            {
+                telemetry.addLine("Don't see tag of interest :(");
+
+                if(tagOfInterest == null)
+                {
+                    telemetry.addLine("(The tag has never been seen)");
+                }
+                else
+                {
+                    telemetry.addLine("\nBut we HAVE seen the tag before; last seen at:");
+                    tagToTelemetry(tagOfInterest);
+                }
+
+            }
+
+            Close_Claws();
             telemetry.update();
-            // Don't burn CPU cycles busy-looping in this sample
-            sleep(50);
+            sleep(20);
         }
 
-        snapshotAnalysis = pipeline.getAnalysis();
 
-        telemetry.addData("Snapshot post-START analysis", snapshotAnalysis);
-        telemetry.update();
+        /*
+         * The START command just came in: now work off the latest snapshot acquired
+         * during the init loop.
+         */
 
+        /* Update the telemetry */
+        // If a QR is detected, Then display the one it found in the telemetry
+        if(tagOfInterest != null)
+        {
+            telemetry.addLine("Tag snapshot:\n");
+            tagToTelemetry(tagOfInterest);
+            Close_Claws();
+            telemetry.update();
+        }
 
-        telemetry.addData("Status", "\uD83C\uDD97");
+        // If no QR Code is detected
+        else
+        {
+            telemetry.addLine("No tag snapshot available, it was never sighted during the init loop :(");
+            Close_Claws();
+            telemetry.update();
+        }
 
-        telemetry.clear();
-        telemetry.update();
+        // All the Code above is how the camera detects the april tage (^-- That code)
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+        //////////////////////
+        // Autonomous  Code //
+        //////////////////////
 
-        waitForStart();
+        if (tagOfInterest == null) {
+           //put default code here
+            Move(directions.STARBOARD, 58, .5);
+       }
 
-        /////////////////////////////////////////////////////////////////////////////////////////
-        ///////////////////////////////////   CODE   ///////////////////////////////////////////
-        ///////////////////////////////////////////////////////////////////////////////////////
+        // The Left is Sleeve 10 (QR Code 10)
+        else if (tagOfInterest.id == Left ) {
+            Autonomous();
+            Backwards_Raise(5, 0.5, -10, .8);
+       }
 
-        // Plan
-
-        // Before start, the claw is pre-loaded, and its left side
-        // is along the wall. The robot faces *away* from the drop station,
-        // and the claw is above the left edge of the "center"
-        // tile. The camera is mounted to scan the sleeve from this
-        // starting position.
-
-        // 1. Identify the sleeve
-        // 2. Park depending on sleeve
-
-
-        //Runs 1 of 3 codes based on the Sleeve
-        switch (snapshotAnalysis) {
-            case LEFT: // Sleeve 1
-            {
-                Move(directions.STARBOARD, 32, .6);
-                Move(directions.PORT,3,.6);
-                Move(directions.FORWARDS,23,.6);
-                break;
-            }
-
-
-            case CENTER: // Sleeve 2
-            {
-
-                // Moves to the Right just so it parks in the Middle Parking space (Numbers Might be off a tad)
-
-                Move(directions.STARBOARD, 57, .6);
-
-
-                break;
+        // The Middle is Sleeve 20 (QR Code 20)
+        else if (tagOfInterest.id == Middle){
+            Autonomous();
+            Backwards_Raise(27, 0.7, -10, .8);
+        }
 
 
-            }
-
-            case RIGHT: // Sleeve 3
-            {
-
-                Move(directions.STARBOARD, 57, .6);
-                Move(directions.BACKWARDS,23,.6);
-                break;
-            }
-
+        // The third else or in this case Right is Sleeve 30 (QR Code 30)
+        else {
+            Autonomous();
+            Backwards_Raise(50, 1, -10, 0.8);
 
         }
     }
@@ -189,6 +266,11 @@ public class Auto_Parking extends LinearOpMode {
     ////////////////////                   Functions                         ///////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
+    // Function to Give telemetry on which QR Code is Detected
+    void tagToTelemetry(AprilTagDetection detection)
+    {
+        telemetry.addLine(String.format("\nDetected tag ID=%d", detection.id));
+    }
 
     // Function to ONLY Raise the Linear Slide / Arm
     private void Raise(int target, double speed) {
@@ -480,22 +562,16 @@ public class Auto_Parking extends LinearOpMode {
 
 
 
-        // Moves to the the right far enough to move the signal sleeve cone out of the way so we don't get
-        // caught on it
+        // Moves to the Small Junction on the left side of the field while lifting the arm
 
-        Right_Raise(60, 0.75, 15, 0.8);
-
-        // Moves to the left to line up so the robot is in alignment with the Small Junction
-
-        Move(directions.PORT, 16, .6);
+        Right_Raise(44, 0.5, 16, 0.8);
 
         // Moves forward so the cone is over the Small Junction
 
-        Move(directions.FORWARDS,4, 0.6);
+        Move(directions.FORWARDS,5, 0.5);
 
         // Lowers the cone over the junction so it is stable when dropping the cone
-
-        Lower(3, 0.6);
+        sleep(250);
 
         // Opens the claws to drop the cone
 
@@ -503,7 +579,7 @@ public class Auto_Parking extends LinearOpMode {
 
         // Moves Backwards to get off of the Small Junction while the claws are still open
 
-        Move(directions.BACKWARDS, 4, 0.7);
+        Move(directions.BACKWARDS, 4, 0.5);
 
         // Closes the claws since there is no cone for stability
         Close_Claws();
@@ -515,12 +591,17 @@ public class Auto_Parking extends LinearOpMode {
 
         // Moves right to align itself up with the stack of cones on the left side of the field
 
+        sleep(100);
+        Move(directions.STARBOARD, 16, 0.5);
 
-        Move(directions.STARBOARD, 12, 0.6);
+        // Moves to the left to align itself up with the stack of cones on the left side of the field
+
+        sleep(100);
+        Move(directions.PORT, 3, 0.5);
 
         // Moves Forwards going towards the stacked cones
 
-        Move(directions.FORWARDS, 25, 0.55);
+        Move(directions.FORWARDS, 26, 0.35);
 
         // Opens Claws to pick up the cones
 
@@ -528,7 +609,7 @@ public class Auto_Parking extends LinearOpMode {
 
         // Lowers the Arm in order to pick up one of the cones from the stack of cones
 
-        Lower(9, 0.8);
+        Lower(12, 0.8);
 
         // Close the claws in order to capture/hold a stacked cone
 
@@ -541,20 +622,18 @@ public class Auto_Parking extends LinearOpMode {
         // Going backwards to re-align itself with the Small Junction while also raising the Arm to give it height
         // to place it on the small junction
 
-        Backwards_Raise(26, 0.6, 4, 0.8);
+        Backwards_Raise(26, 0.5, 4, 0.8);
 
         // Moves to the Left to play on the Small Junction
 
-        Move(directions.PORT, 14, 0.6);
+        Move(directions.PORT, 13, 0.5);
 
         // Moves Forward to place the cone over the Small Junction
 
-        Move(directions.FORWARDS, 6, 0.6);
-
-        Lower(3,.8);
+        Move(directions.FORWARDS, 5, 0.5);
 
         // Open Claws in order to drop the cone over the Small Junction
-
+        sleep(250);
         Open_Claws();
 
         // Moves Backwards to get off of the Small Junction while the claws are still open
@@ -569,11 +648,12 @@ public class Auto_Parking extends LinearOpMode {
 
         // Moves Right to align itself up with the stack of cones on the left side of the field
 
-        Move(directions.STARBOARD, 12, 0.6);
+
+        Move(directions.STARBOARD, 13, 0.5);
 
         // Moves Forward to Pick up a cone from the stack for Driver Control
 
-        Move(directions.FORWARDS, 27, 0.6);
+        Move(directions.FORWARDS, 27, 0.5);
 
         // Lowers the arm so it can pick up a cone from the stack on the left side of the field
 
@@ -595,9 +675,4 @@ public class Auto_Parking extends LinearOpMode {
 
     }
 
-//Closes Linear Op Mode
-}
-
-
-
-
+ }
