@@ -1,26 +1,4 @@
-
-/*
- * Copyright (c) 2021 OpenFTC Team
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
-
-package org.firstinspires.ftc.teamcode.AprilTags_Code;
+package org.firstinspires.ftc.teamcode.Old_Code.OpenCV_Code;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
@@ -30,17 +8,16 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.openftc.apriltag.AprilTagDetection;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
+import org.openftc.easyopencv.OpenCvWebcam;
 
-import java.util.ArrayList;
-
-@Autonomous
+@Autonomous(name="Auto_Right",group="used")
 @Disabled
-public class AutoRight_AT extends LinearOpMode
-{
+public class Auto_Right extends LinearOpMode {
+//Declare Motors and Deivces needed to run the code.
+
     //Motors
     // The private/public DcMotor _____; are used to identify a motor that can be used throughout the code.
     // Note that it does not matter if you use Public or a Private class identity for the motor
@@ -53,59 +30,37 @@ public class AutoRight_AT extends LinearOpMode
     private DcMotor motorBR;
     private DcMotor motorRiseyRise;
 
+
     //Servos
     // The Servo ____; are used to identify a servo that can be used throughout the code.
     //           Name
     Servo servoFAL;
     Servo servoFAR;
 
+    //Webcam
+    OpenCvWebcam webcam;
+    SkystoneDeterminationExample.SkystoneDeterminationPipeline pipeline;
+    SkystoneDeterminationExample.SkystoneDeterminationPipeline.SkystonePosition snapshotAnalysis = SkystoneDeterminationExample.SkystoneDeterminationPipeline.SkystonePosition.LEFT; // default
 
 
-    ///////////////////////////////////////////////
-    // April-Tag Things (Camera Included)     /////
-    ///////////////////////////////////////////////
-
-    OpenCvCamera camera;
-    AprilTagDetectionPipeline aprilTagDetectionPipeline;
-
-    static final double FEET_PER_METER = 3.28084;
-
-    // Lens intrinsics
-    // UNITS ARE PIXELS
-    // NOTE: this calibration is for the C920 webcam at 800x448.
-    // You will need to do your own calibration for other configurations!
-    double fx = 578.272;
-    double fy = 578.272;
-    double cx = 402.145;
-    double cy = 221.506;
-
-    // UNITS ARE METERS
-    double tagsize = 0.166;
-
-    //These are The QR Code things that you need
-    //int ID_TAG_OF_INTEREST = 18; // Tag ID 18 from the 36h11 family
-    int Left = 11; //Detects april tag id#10 - Attached to sleeve template position one
-    int Middle = 12; //Detects april tag id#20 - Attached to sleeve template position one
-    int Right = 13; //Detects april tag id#30 - Attached to sleeve template position one
-
-    AprilTagDetection tagOfInterest = null;
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-    // Global Variables
+    //GLOBAL VARIABLES
+    // The int ____ = ______; are used to identify variables used through out the code.
+    //         Name   amount
 
     /* Motor Tick Count
-               Andy Mark 3.7:1 = 103.6
-               Andy Mark 20:1  = 537.6
-               Andy Mark 60:1  = 1680
+            Andy Mark 3.7:1 = 103.6
+            Andy Mark 20:1  = 537.6
+            Andy Mark 60:1  = 1680
 
-           To Calculate: # ticks per revolution / Distance of Revolution =
-        */
+        To Calculate: # ticks per revolution / Distance of Revolution =
+     */
     int in = 45; //Used for the wheels to drive: = 537.6 / (pi * 96 mm) = 537.6 / (pi * 3.77953 in)
     int up = 360 ; //Used for the linear slide distance
 
+
     @Override
-    public void runOpMode()
-    {
+    public void runOpMode() {
+
         // HardwareMap Section (Used to talk to the driver hub for the configuration)
 
         // Motors
@@ -114,6 +69,7 @@ public class AutoRight_AT extends LinearOpMode
         motorBL = hardwareMap.dcMotor.get("motorBL");
         motorBR = hardwareMap.dcMotor.get("motorBR");
         motorRiseyRise = hardwareMap.dcMotor.get("motorRiseyRise");
+
 
         // Servos
         servoFAL = hardwareMap.servo.get("servoFAL");
@@ -131,160 +87,96 @@ public class AutoRight_AT extends LinearOpMode
 
         // Camera
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
-        aprilTagDetectionPipeline = new AprilTagDetectionPipeline(tagsize, fx, fy, cx, cy);
-
-        camera.setPipeline(aprilTagDetectionPipeline);
-        camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
-        {
+        webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
+        pipeline = new SkystoneDeterminationExample.SkystoneDeterminationPipeline();
+        webcam.setPipeline(pipeline);
+        webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
             @Override
-            public void onOpened()
-            {
-                camera.startStreaming(800,448, OpenCvCameraRotation.UPRIGHT);
+            public void onOpened() {
+                // This is in what viewing window the camera is seeing through and it doesn't matter
+                // what orientation it is | UPRIGHT, SIDEWAYS_LEFT, SIDEWAYS_RIGHT, etc.
+                webcam.startStreaming(1280, 720, OpenCvCameraRotation.UPRIGHT);
             }
 
             @Override
-            public void onError(int errorCode)
-            {
-
+            public void onError(int errorCode) {
             }
         });
+        Close_Claws();
 
-        telemetry.setMsTransmissionInterval(50);
+        while (!isStarted() && !isStopRequested()) {
+            telemetry.addData("Realtime analysis", pipeline.getAnalysis());
+            telemetry.update();
+            // Don't burn CPU cycles busy-looping in this sample
+            sleep(50);
+        }
 
-        /*
-         * The INIT-loop:
-         * This REPLACES waitForStart!
-         */
+        snapshotAnalysis = pipeline.getAnalysis();
+        telemetry.addData("Snapshot post-START analysis", snapshotAnalysis);
+        telemetry.update();
 
 
-        ////////////////////////////////
-        // Start of Code or Initialize//
-        ////////////////////////////////
+        telemetry.addData("Status", "\uD83C\uDD97");
 
-        while (!isStarted() && !isStopRequested())
-        {
-            // Calls to the Pipline
-            ArrayList<AprilTagDetection> currentDetections = aprilTagDetectionPipeline.getLatestDetections();
+        telemetry.clear();
+        telemetry.update();
 
-            if(currentDetections.size() != 0)
+
+        waitForStart();
+
+        /////////////////////////////////////////////////////////////////////////////////////////
+        ///////////////////////////////////   CODE   ///////////////////////////////////////////
+        ///////////////////////////////////////////////////////////////////////////////////////
+
+        // Plan
+
+        // Before start, the claw is pre-loaded, and its left side
+        // is along the wall. The robot faces the drop station,
+        // and the claw is above the left edge of the "center"
+        // tile. The camera is mounted to scan the sleeve from this
+        // starting position.
+
+        // 1. Identify the sleeve
+        // 2a. Drive right to align claw with high junction (63 inches?)
+        /////// 24 + 24 + 6 + 9
+        // 2b. Raise the claw to a high height (44 inches?)
+        // 3. Open the claw, then briefly rest
+        // 4a. Lower the claw
+        // 4b. Drive left to align robot to park (36 inches?)
+        /////// 12 + 24
+        // 5. Park depending on sleeve
+
+
+        //Runs 1 of 3 codes based on the Sleeve
+        switch (snapshotAnalysis) {
+            case LEFT: // Sleeve 1
             {
-                boolean tagFound = false;
+                Autonomous();
+                Move(directions.FORWARDS, 23, 0.5);
 
-                for(AprilTagDetection tag : currentDetections)
-                {
-                    //         QR 10              QR 20               QR 30
-                    if(tag.id == Left || tag.id == Middle || tag.id == Right)
-                    {
-                        tagOfInterest = tag;
-                        tagFound = true;
-                        break;
-                    }
-                }
-
-                // If ANY QR is found Display the Green Text in Telemetry with the QR that is found
-                if(tagFound)
-                {
-                    telemetry.addLine("Tag of interest is in sight!\n\nLocation data:");
-                    tagToTelemetry(tagOfInterest);
-                }
-
-                // If NO QR is found Display one of the following Messages in Green Text
-                else
-                {
-                    // If No Tag is seen then display the text below in the telemetry
-                    telemetry.addLine("Don't see tag of interest :(");
-
-                    if(tagOfInterest == null)
-                    {
-
-                        // If No Tag is seen then display the text below in the telemetry
-                        telemetry.addLine("(The tag has never been seen)");
-                    }
-                    else
-                    {
-                        // Code to display in the telemetry of the last seen QR Code
-                        telemetry.addLine("\nBut we HAVE seen the tag before; last seen at:");
-                        tagToTelemetry(tagOfInterest);
-                    }
-                }
-            }
-            else
-            {
-                telemetry.addLine("Don't see tag of interest :(");
-
-                if(tagOfInterest == null)
-                {
-                    telemetry.addLine("(The tag has never been seen)");
-                }
-                else
-                {
-                    telemetry.addLine("\nBut we HAVE seen the tag before; last seen at:");
-                    tagToTelemetry(tagOfInterest);
-                }
-
+                break;
             }
 
-            Close_Claws();
-            telemetry.update();
-            sleep(20);
+
+            case RIGHT: // Sleeve 3
+            {
+                Autonomous();
+                Move(directions.BACKWARDS, 25, 0.5);
+
+
+                break;
+            }
+
+            case CENTER: // Sleeve 2
+            {
+                Autonomous();
+                Move(directions.BACKWARDS, 1, 0.5);
+
+                break;
+
+
+            }
         }
-
-
-        /*
-         * The START command just came in: now work off the latest snapshot acquired
-         * during the init loop.
-         */
-
-        /* Update the telemetry */
-        // If a QR is detected, Then display the one it found in the telemetry
-        if(tagOfInterest != null)
-        {
-            telemetry.addLine("Tag snapshot:\n");
-            tagToTelemetry(tagOfInterest);
-            Close_Claws();
-            telemetry.update();
-        }
-
-        // If no QR Code is detected
-        else
-        {
-            telemetry.addLine("No tag snapshot available, it was never sighted during the init loop :(");
-            Close_Claws();
-            telemetry.update();
-        }
-
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // All the Code above is how the camera detects the april tage (^-- That code)    ////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-        //////////////////////
-        // Autonomous  Code //
-        //////////////////////
-
-        if (tagOfInterest == null) {
-           //put default code here
-            Move(directions.STARBOARD, 58, .5);
-       }
-
-        // The Left is Sleeve 10 (QR Code 10)
-        else if (tagOfInterest.id == Left ) {
-            Autonomous();
-            Move(directions.FORWARDS, 23, 0.5);
-       }
-
-        // The Middle is Sleeve 20 (QR Code 20)
-        else if (tagOfInterest.id == Middle){
-            Autonomous();
-            Move(directions.BACKWARDS, 1, 0.5);
-        }
-
-
-        // The third else or in this case Right is Sleeve 30 (QR Code 30)
-        else {
-            Autonomous();
-            Move(directions.BACKWARDS, 25, 0.5);
-       }
     }
 
 
@@ -292,13 +184,6 @@ public class AutoRight_AT extends LinearOpMode
     ////////////////////                   Functions                         ///////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-    // Function to Give telemetry on which QR Code is Detected
-    void tagToTelemetry(AprilTagDetection detection)
-    {
-        telemetry.addLine(String.format("\nDetected tag ID=%d", detection.id));
-
-    }
 
     // Function to ONLY Raise the Linear Slide / Arm
     private void Raise(int target, double speed) {
@@ -324,7 +209,10 @@ public class AutoRight_AT extends LinearOpMode
         motorRiseyRise.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         // The stop and reset encoders is needed to reset and start the encoders (You need one at the
         // end because it tells the robot where the drive code starts and ends, kinda like brackets)
+        motorRiseyRise.setDirection(DcMotorSimple.Direction.FORWARD);
+
         motorRiseyRise.setTargetPosition(target * up);
+
         // tells it to go to the position that is set
         motorRiseyRise.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         // the motor speed for Wheel
@@ -348,6 +236,7 @@ public class AutoRight_AT extends LinearOpMode
         servoFAR.setDirection(Servo.Direction.REVERSE);
         servoFAR.setPosition(0);
     }
+
 
     // Function to Move to the Right and Raise the Linear Slide / Arm
     private void Right_Raise(int move_target, double move_speed, int claw_target, double claw_speed) {
@@ -528,6 +417,7 @@ public class AutoRight_AT extends LinearOpMode
 
     // Our Autonomous Code
     private void Autonomous () {
+        Close_Claws();
 
         // Raise the claws up to the High Junction while moving the Signal Sleeve cone out of the way
 
@@ -541,14 +431,11 @@ public class AutoRight_AT extends LinearOpMode
 
         Move(directions.FORWARDS, 4, 0.5);
 
-
-
-        // Waits for the High Junction to stop shaking, then lowers the Arm
+        // Lowers and opens the claws to drop the cone on the High Junction
+        // LONG SLEEP because we (currently) have time to spare
 
         sleep(3000);
-        Lower(-2, 0.8);
-
-        // Opens the claws to drop the cone on the High Junction
+        Lower(2, 0.8);
         Open_Claws();
 
         // Moves Backwards to get off of the High Junction
@@ -571,4 +458,5 @@ public class AutoRight_AT extends LinearOpMode
     }
 
 
+//Closes Linear Op Mode
 }

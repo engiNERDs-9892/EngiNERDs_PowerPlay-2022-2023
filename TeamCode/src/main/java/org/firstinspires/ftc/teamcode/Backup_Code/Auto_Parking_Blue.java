@@ -27,10 +27,11 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode.Gyro_Code;
+package org.firstinspires.ftc.teamcode.Backup_Code;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -43,6 +44,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import org.firstinspires.ftc.teamcode.Backup_Code.AprilTagDetectionPipeline;
 import org.openftc.apriltag.AprilTagDetection;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
@@ -50,9 +52,9 @@ import org.openftc.easyopencv.OpenCvCameraRotation;
 
 import java.util.ArrayList;
 
-@Autonomous(name="Auto_Parking_Right", group="Robot")
-//@Disabled
-public class Auto_Parking_Right extends LinearOpMode {
+@Autonomous(name="Auto_Parking_Left", group="Robot")
+@Disabled
+public class Auto_Parking_Blue extends LinearOpMode {
     OpenCvCamera camera;
     AprilTagDetectionPipeline aprilTagDetectionPipeline;
 
@@ -174,7 +176,7 @@ public class Auto_Parking_Right extends LinearOpMode {
 
         // Camera
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam Right"), cameraMonitorViewId);
+        camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam Left"), cameraMonitorViewId);
         aprilTagDetectionPipeline = new AprilTagDetectionPipeline(tagsize, fx, fy, cx, cy);
 
         camera.setPipeline(aprilTagDetectionPipeline);
@@ -311,31 +313,30 @@ public class Auto_Parking_Right extends LinearOpMode {
 
         if (tagOfInterest == null) {
 
-            Move(directions.RIGHT,57,.8);
+
+            Move(directions.LEFT,57,.8);
 
         }
 
         // The Left is Sleeve 10 (QR Code 10)
         else if (tagOfInterest.id == Left) {
 
-            Move(directions.RIGHT,57,.5);
-            Move(directions.FORWARDS,20,.5);
+            Move(directions.LEFT,57,.5);
+            Move(directions.BACKWARDS,26,.3);
         }
 
         // The Middle is Sleeve 20 (QR Code 20)
         else if (tagOfInterest.id == Middle) {
-
-            Move(directions.RIGHT,57,.5);
-
+            Move(directions.LEFT,57,.5);
         }
 
 
         // The third else or in this case Right is Sleeve 30 (QR Code 30)
         else {
 
+            Move(directions.LEFT,57,.5);
+            Move(directions.FORWARDS,20,.5);
 
-            Move(directions.RIGHT,57,.5);
-            Move(directions.BACKWARDS,26,.3);
 
         }
     }

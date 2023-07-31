@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.OpenCV_Code;
+package org.firstinspires.ftc.teamcode.Old_Code.OpenCV_Code;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
@@ -13,10 +13,11 @@ import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvWebcam;
 
-@Autonomous(name="Auto_Right",group="used")
+@Autonomous(name="Auto_Parking",group="used")
 @Disabled
-public class Auto_Right extends LinearOpMode {
-//Declare Motors and Deivces needed to run the code.
+public class Auto_Parking extends LinearOpMode {
+
+//Declare Motors and Devices needed to run the code.
 
     //Motors
     // The private/public DcMotor _____; are used to identify a motor that can be used throughout the code.
@@ -54,9 +55,9 @@ public class Auto_Right extends LinearOpMode {
 
         To Calculate: # ticks per revolution / Distance of Revolution =
      */
-    int in = 45; //Used for the wheels to drive: = 537.6 / (pi * 96 mm) = 537.6 / (pi * 3.77953 in)
-    int up = 360 ; //Used for the linear slide distance
 
+    int in = 45; //Used for the wheels to drive: = 537.6 / (pi * 96 mm) = 537.6 / (pi * 3.77953 in)
+    int up = 360; //Used for the linear slide distance
 
     @Override
     public void runOpMode() {
@@ -102,7 +103,13 @@ public class Auto_Right extends LinearOpMode {
             public void onError(int errorCode) {
             }
         });
+
+
+        // Close claws when initialized
         Close_Claws();
+        //servoFAL.setPosition(0);
+        //servoFAR.setDirection(Servo.Direction.REVERSE);
+        //servoFAR.setPosition(0);
 
         while (!isStarted() && !isStopRequested()) {
             telemetry.addData("Realtime analysis", pipeline.getAnalysis());
@@ -112,6 +119,7 @@ public class Auto_Right extends LinearOpMode {
         }
 
         snapshotAnalysis = pipeline.getAnalysis();
+
         telemetry.addData("Snapshot post-START analysis", snapshotAnalysis);
         telemetry.update();
 
@@ -131,51 +139,48 @@ public class Auto_Right extends LinearOpMode {
         // Plan
 
         // Before start, the claw is pre-loaded, and its left side
-        // is along the wall. The robot faces the drop station,
+        // is along the wall. The robot faces *away* from the drop station,
         // and the claw is above the left edge of the "center"
         // tile. The camera is mounted to scan the sleeve from this
         // starting position.
 
         // 1. Identify the sleeve
-        // 2a. Drive right to align claw with high junction (63 inches?)
-        /////// 24 + 24 + 6 + 9
-        // 2b. Raise the claw to a high height (44 inches?)
-        // 3. Open the claw, then briefly rest
-        // 4a. Lower the claw
-        // 4b. Drive left to align robot to park (36 inches?)
-        /////// 12 + 24
-        // 5. Park depending on sleeve
+        // 2. Park depending on sleeve
 
 
         //Runs 1 of 3 codes based on the Sleeve
         switch (snapshotAnalysis) {
             case LEFT: // Sleeve 1
             {
-                Autonomous();
-                Move(directions.FORWARDS, 23, 0.5);
-
+                Move(directions.STARBOARD, 32, .6);
+                Move(directions.PORT,3,.6);
+                Move(directions.FORWARDS,23,.6);
                 break;
             }
 
-
-            case RIGHT: // Sleeve 3
-            {
-                Autonomous();
-                Move(directions.BACKWARDS, 25, 0.5);
-
-
-                break;
-            }
 
             case CENTER: // Sleeve 2
             {
-                Autonomous();
-                Move(directions.BACKWARDS, 1, 0.5);
+
+                // Moves to the Right just so it parks in the Middle Parking space (Numbers Might be off a tad)
+
+                Move(directions.STARBOARD, 57, .6);
+
 
                 break;
 
 
             }
+
+            case RIGHT: // Sleeve 3
+            {
+
+                Move(directions.STARBOARD, 57, .6);
+                Move(directions.BACKWARDS,23,.6);
+                break;
+            }
+
+
         }
     }
 
@@ -192,7 +197,7 @@ public class Auto_Right extends LinearOpMode {
         motorRiseyRise.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         // This sets the direction for the motor for the wheels to drive forward
         motorRiseyRise.setDirection(DcMotorSimple.Direction.REVERSE);
-        // Gives it a position to run to
+        //
         motorRiseyRise.setTargetPosition(target * up);
         // tells it to go to the position that is set
         motorRiseyRise.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -206,16 +211,16 @@ public class Auto_Right extends LinearOpMode {
 
     // Function to ONLY Lower the Linear Slide / Arm
     private void Lower(int target, double speed) {
-        motorRiseyRise.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         // The stop and reset encoders is needed to reset and start the encoders (You need one at the
         // end because it tells the robot where the drive code starts and ends, kinda like brackets)
+        motorRiseyRise.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        // Gives it a position to run to
         motorRiseyRise.setDirection(DcMotorSimple.Direction.FORWARD);
 
         motorRiseyRise.setTargetPosition(target * up);
-
         // tells it to go to the position that is set
         motorRiseyRise.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        // the motor speed for Wheel
+        // the motor speed
         motorRiseyRise.setPower(speed);
         // While loop keeps the code running until motors reach the desired position
         while (opModeIsActive() && (motorRiseyRise.isBusy())) {
@@ -223,31 +228,27 @@ public class Auto_Right extends LinearOpMode {
         motorRiseyRise.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
     }
 
-    // Function to Open the Claws on the Robot
+    // Function to Open the Claws
     private void Open_Claws() {
-        servoFAL.setPosition(.15);
+        servoFAL.setPosition(.25);
         servoFAR.setDirection(Servo.Direction.REVERSE);
-        servoFAR.setPosition(.15);
+        servoFAR.setPosition(.25);
     }
 
-    // Function to close the claws on the Robot
+    // Function to Close the Claws
     private void Close_Claws() {
         servoFAL.setPosition(0);
         servoFAR.setDirection(Servo.Direction.REVERSE);
         servoFAR.setPosition(0);
     }
 
-
     // Function to Move to the Right and Raise the Linear Slide / Arm
     private void Right_Raise(int move_target, double move_speed, int claw_target, double claw_speed) {
-
-        // Stops and Resets the encoders in order to use the motors
         motorFL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         motorFR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         motorBL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         motorBR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         motorRiseyRise.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
         // This sets the direction for the motor for the wheels to drive forward
         motorFL.setDirection(DcMotorSimple.Direction.REVERSE);
         motorBL.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -261,21 +262,18 @@ public class Auto_Right extends LinearOpMode {
         motorBL.setTargetPosition(move_target * in);
         motorBR.setTargetPosition(move_target * in);
         motorRiseyRise.setTargetPosition(claw_target * up);
-
         // tells it to go to the position that is set
         motorFL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         motorFR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         motorBL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         motorBR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         motorRiseyRise.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
         // the motor speed for Wheels
         motorFL.setPower(move_speed);
         motorFR.setPower(move_speed);
         motorBL.setPower(move_speed);
         motorBR.setPower(move_speed);
         motorRiseyRise.setPower(claw_speed);
-
         // While loop keeps the code running until motors reach the desired position
         while (opModeIsActive() && (motorFL.isBusy() || motorFR.isBusy() || motorRiseyRise.isBusy())) {
         }
@@ -285,6 +283,7 @@ public class Auto_Right extends LinearOpMode {
         motorBR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         motorRiseyRise.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
     }
+
 
     // Function to Move to the Left and Lower the Linear Slide / Arm
     private void Left_Lower(int move_target, double move_speed, int claw_target, double claw_speed) {
@@ -298,7 +297,8 @@ public class Auto_Right extends LinearOpMode {
         motorBL.setDirection(DcMotorSimple.Direction.REVERSE);
         motorFR.setDirection(DcMotorSimple.Direction.FORWARD);
         motorBR.setDirection(DcMotorSimple.Direction.REVERSE);
-        motorRiseyRise.setDirection(DcMotorSimple.Direction.REVERSE);
+        motorRiseyRise.setDirection(DcMotorSimple.Direction.FORWARD);
+
         // Gives it a position to run to
         motorFL.setTargetPosition(move_target * in);
         motorFR.setTargetPosition(move_target * in);
@@ -317,7 +317,48 @@ public class Auto_Right extends LinearOpMode {
         motorBL.setPower(move_speed);
         motorBR.setPower(move_speed);
         motorRiseyRise.setPower(claw_speed);
+        // While loop keeps the code running until motors reach the desired position
+        while (opModeIsActive() && (motorFL.isBusy() || motorFR.isBusy() || motorRiseyRise.isBusy())) {
+        }
+        motorFL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        motorFR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        motorBL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        motorBR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        motorRiseyRise.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+    }
 
+    // Function to Move Backwards and Raise the Linear Slide / Arm
+    private void Backwards_Raise(int move_target, double move_speed, int claw_target, double claw_speed) {
+        motorFL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        motorFR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        motorBL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        motorBR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        motorRiseyRise.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        // This sets the direction for the motor for the wheels to drive forward
+        motorFL.setDirection(DcMotorSimple.Direction.FORWARD);
+        motorBL.setDirection(DcMotorSimple.Direction.FORWARD);
+        motorFR.setDirection(DcMotorSimple.Direction.REVERSE);
+        motorBR.setDirection(DcMotorSimple.Direction.REVERSE);
+        motorRiseyRise.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        // Gives it a position to run to
+        motorFL.setTargetPosition(move_target * in);
+        motorFR.setTargetPosition(move_target * in);
+        motorBL.setTargetPosition(move_target * in);
+        motorBR.setTargetPosition(move_target * in);
+        motorRiseyRise.setTargetPosition(claw_target * up);
+        // tells it to go to the position that is set
+        motorFL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        motorFR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        motorBL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        motorBR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        motorRiseyRise.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        // the motor speed for Wheels
+        motorFL.setPower(move_speed);
+        motorFR.setPower(move_speed);
+        motorBL.setPower(move_speed);
+        motorBR.setPower(move_speed);
+        motorRiseyRise.setPower(claw_speed);
         // While loop keeps the code running until motors reach the desired position
         while (opModeIsActive() && (motorFL.isBusy() || motorFR.isBusy() || motorRiseyRise.isBusy())) {
         }
@@ -329,7 +370,7 @@ public class Auto_Right extends LinearOpMode {
     }
 
 
-    // Function for each motor/driving direction
+    // Directions
     private void Move(directions direction, int target, double speed) {
         motorFL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         motorFR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -414,49 +455,149 @@ public class Auto_Right extends LinearOpMode {
 
     }
 
-
-    // Our Autonomous Code
-    private void Autonomous () {
-        Close_Claws();
-
-        // Raise the claws up to the High Junction while moving the Signal Sleeve cone out of the way
-
-        Right_Raise(76, 0.5, 33, 0.8);
-
-        // Moves to the Left to align itself up with the High Junction
-
-        Move(directions.PORT, 4, 0.5);
-
-        // Moves Forwards so the Cone is over the High Junction
-
-        Move(directions.FORWARDS, 4, 0.5);
-
-        // Lowers and opens the claws to drop the cone on the High Junction
-        // LONG SLEEP because we (currently) have time to spare
-
-        sleep(3000);
-        Lower(2, 0.8);
-        Open_Claws();
-
-        // Moves Backwards to get off of the High Junction
-
-        sleep(200);
-        Move(directions.BACKWARDS, 5, 0.5);
-
-        // Moves Left to align itself for parking while also lowering the claw
-        Left_Lower(18, 0.5, -31, 0.7);
-    }
-
     // Names to for the Directions used in the Move Function
     enum directions{
         FORWARDS,
         BACKWARDS,
-        PORT,//LEFT
-        STARBOARD,//RIGHT
+        PORT, //LEFT
+        STARBOARD, //RIGHT
         CLOCKWISE, //TURN CLOCKWISE
         COUNTER_CLOCKWISE, //TURN COUNTER-CLOCKWISE
     }
 
+    private void Autonomous() {
+
+        // Key
+        // Arm == Linear Slides / Motor RiseyRise
+
+
+
+        ////////////////////////////////
+        // Pre-Loaded Cone or Cone #1///
+        ////////////////////////////////
+
+        // To Capture / Hold Pre-Loaded Cone
+
+
+
+        // Moves to the the right far enough to move the signal sleeve cone out of the way so we don't get
+        // caught on it
+
+        Right_Raise(60, 0.75, 15, 0.8);
+
+        // Moves to the left to line up so the robot is in alignment with the Small Junction
+
+        Move(directions.PORT, 16, .6);
+
+        // Moves forward so the cone is over the Small Junction
+
+        Move(directions.FORWARDS,4, 0.6);
+
+        // Lowers the cone over the junction so it is stable when dropping the cone
+
+        Lower(3, 0.6);
+
+        // Opens the claws to drop the cone
+
+        Open_Claws();
+
+        // Moves Backwards to get off of the Small Junction while the claws are still open
+
+        Move(directions.BACKWARDS, 4, 0.7);
+
+        // Closes the claws since there is no cone for stability
+        Close_Claws();
+
+
+        ///////////////////////////
+        // Stack Cones or Cone #2//
+        ///////////////////////////
+
+        // Moves right to align itself up with the stack of cones on the left side of the field
+
+
+        Move(directions.STARBOARD, 12, 0.6);
+
+        // Moves Forwards going towards the stacked cones
+
+        Move(directions.FORWARDS, 25, 0.55);
+
+        // Opens Claws to pick up the cones
+
+        Open_Claws();
+
+        // Lowers the Arm in order to pick up one of the cones from the stack of cones
+
+        Lower(9, 0.8);
+
+        // Close the claws in order to capture/hold a stacked cone
+
+        Close_Claws();
+
+        // Raise the Arm to get the Cone that it picked up off of the stack
+
+        Raise(7, 0.8);
+
+        // Going backwards to re-align itself with the Small Junction while also raising the Arm to give it height
+        // to place it on the small junction
+
+        Backwards_Raise(26, 0.6, 4, 0.8);
+
+        // Moves to the Left to play on the Small Junction
+
+        Move(directions.PORT, 14, 0.6);
+
+        // Moves Forward to place the cone over the Small Junction
+
+        Move(directions.FORWARDS, 6, 0.6);
+
+        Lower(3,.8);
+
+        // Open Claws in order to drop the cone over the Small Junction
+
+        Open_Claws();
+
+        // Moves Backwards to get off of the Small Junction while the claws are still open
+
+        Move(directions.BACKWARDS, 5, 0.4);
+
+
+
+        /////////////////////////////////////////
+        // Picking up Cones for Driver Control //
+        /////////////////////////////////////////
+
+        // Moves Right to align itself up with the stack of cones on the left side of the field
+
+        Move(directions.STARBOARD, 12, 0.6);
+
+        // Moves Forward to Pick up a cone from the stack for Driver Control
+
+        Move(directions.FORWARDS, 27, 0.6);
+
+        // Lowers the arm so it can pick up a cone from the stack on the left side of the field
+
+        Lower(10, 0.8);
+
+        // Close Claws to pick up a cone for Driver Control
+
+        Close_Claws();
+
+        // To raise the cone off of the stack.
+
+        Raise(6, 0.8);
+
+
+        /////////////////////////////////////////////////////////////////////////////
+        // The rest is given up above in the code based on which sleeve is detected//
+        /////////////////////////////////////////////////////////////////////////////
+
+
+    }
 
 //Closes Linear Op Mode
 }
+
+
+
+

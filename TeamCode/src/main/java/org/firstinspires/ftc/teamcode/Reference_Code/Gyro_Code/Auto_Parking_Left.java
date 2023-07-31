@@ -27,10 +27,11 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode.Gyro_Code;
+package org.firstinspires.ftc.teamcode.Reference_Code.Gyro_Code;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -50,9 +51,9 @@ import org.openftc.easyopencv.OpenCvCameraRotation;
 
 import java.util.ArrayList;
 
-@Autonomous(name="Auto_Circut_Red", group="Robot")
-//@Disabled
-public class Auto_Circut_Red extends LinearOpMode {
+@Autonomous(name="Auto_Parking_Left", group="Robot")
+@Disabled
+public class Auto_Parking_Left extends LinearOpMode {
     OpenCvCamera camera;
     AprilTagDetectionPipeline aprilTagDetectionPipeline;
 
@@ -175,7 +176,7 @@ public class Auto_Circut_Red extends LinearOpMode {
         // Camera
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam Left"), cameraMonitorViewId);
-        aprilTagDetectionPipeline = new org.firstinspires.ftc.teamcode.Gyro_Code.AprilTagDetectionPipeline(tagsize, fx, fy, cx, cy);
+        aprilTagDetectionPipeline = new AprilTagDetectionPipeline(tagsize, fx, fy, cx, cy);
 
         camera.setPipeline(aprilTagDetectionPipeline);
         camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
@@ -311,171 +312,30 @@ public class Auto_Circut_Red extends LinearOpMode {
 
         if (tagOfInterest == null) {
 
-            resetHeading();
 
-            ///////////////////////////////
-            // Cone #1 or Pre-Loaded Cone//
-            ///////////////////////////////
-
-            // Moves LEFT to align itself for the Small Junction closest to the SubStation (Where Human player places cones)
-            Left_Raise(17,.8,22,.8);
-
-            Move(directions.FORWARDS,5,.8);
-
-            // Drop Cone #1 on the Small Junction
-            Open_Claws();
-            sleep(350);
-
-            // Move backwards to get off of the Small Junction
-            Move(directions.BACKWARDS,5,.8);
-
-            sleep(350);
-
-            Left_Lower(41 ,.8,11,.8);
-
-            rotate(0,-180,0.1);
-
-            // Cone #2
-            Move(directions.FORWARDS,30,.3);
-
-            Close_Claws();
-
-            sleep(350);
-
-            Backwards_Raise(0,0,7,.8);
-
-            Backwards_Raise(28,.8,7,.8);
-
-            Move(directions.LEFT,14,.8);
-
-            Move(directions.FORWARDS,6,.8);
-
-            sleep(200);
-            Open_Claws();
-            sleep(200);
-
-            Move(directions.BACKWARDS,6,.8);
-
-            Move(directions.RIGHT,14,.8);
-
-            Forwards_Lower(28,.8,12,.8);
-
-            Close_Claws();
-
-            sleep(350);
-
-            Backwards_Raise(0,0,7,.8);
-
-            Backwards_Raise(28,.8,7,.8);
-
-            Move(directions.LEFT,12,.8);
-
-            Forwards_Lower(28,.8,14,.8);
-
-            sleep(200);
-            Open_Claws();
-            sleep(200);
-
-            Move(directions.BACKWARDS,6,.8);
-
-            Move(directions.RIGHT,12,.8);
-
-
-
-
+            Move(directions.LEFT,57,.8);
 
         }
 
         // The Left is Sleeve 10 (QR Code 10)
         else if (tagOfInterest.id == Left) {
 
-            Left_Lower(46, .8,15,.8);
+            Move(directions.LEFT,57,.5);
+            Move(directions.BACKWARDS,26,.3);
         }
 
         // The Middle is Sleeve 20 (QR Code 20)
         else if (tagOfInterest.id == Middle) {
-
-            Left_Lower(16,.8,15,.8);
-
+            Move(directions.LEFT,57,.5);
         }
 
 
         // The third else or in this case Right is Sleeve 30 (QR Code 30)
         else {
 
-            resetHeading();
+            Move(directions.LEFT,57,.5);
+            Move(directions.FORWARDS,20,.5);
 
-            ///////////////////////////////
-            // Cone #1 or Pre-Loaded Cone//
-            ///////////////////////////////
-
-            // Moves LEFT to align itself for the Small Junction closest to the SubStation (Where Human player places cones)
-            Left_Raise(17,.8,22,.8);
-
-            Move(directions.FORWARDS,5,.8);
-
-            // Drop Cone #1 on the Small Junction
-            Open_Claws();
-            sleep(350);
-
-            // Move backwards to get off of the Small Junction
-            Move(directions.BACKWARDS,5,.8);
-
-            sleep(350);
-
-            Left_Lower(40 ,.8,11,.8);
-
-            rotate(0,-180,0.1);
-
-            // Cone #2
-            Move(directions.FORWARDS,28,.3);
-
-            Close_Claws();
-
-            sleep(100);
-
-            Raise(5,.8);
-
-            Backwards_Raise(56,.8,44,.5);
-
-            rotate(-180,-90,0.1);
-
-            Move(directions.FORWARDS,6,.8);
-            sleep(1000);
-
-            Open_Claws();
-
-            sleep(1000);
-
-            Move(directions.BACKWARDS,7,.8);
-
-            rotate(-90,-180,0.1);
-
-            Close_Claws();
-
-            sleep(350);
-
-            Backwards_Raise(0,0,7,.8);
-
-            Backwards_Raise(28,.8,7,.8);
-
-            rotate(-180,-130,0.1);
-
-            Move(directions.FORWARDS,12,.8);
-
-            sleep(200);
-            Open_Claws();
-            sleep(200);
-
-            Move(directions.BACKWARDS,12,.8);
-
-            rotate(-225,-180,0.1);
-
-            Forwards_Lower(28,.8,12,.8);
-
-
-
-            Park_C();
 
         }
     }
@@ -1241,16 +1101,19 @@ public class Auto_Circut_Red extends LinearOpMode {
         }
 
         private void Park_R(){
-        Right_Lower(14,.8,56,.8);
+
         }
 
+
+
         private void Park_L(){
-        Left_Lower(38,.8,56,.8);
+
         }
 
         private void Park_C(){
-            Left_Lower(14,.8,56,.8);
+
         }
+
 
 
     enum directions {
